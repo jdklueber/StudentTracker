@@ -6,7 +6,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 @Data
-public class Classes {
+public class Klass {
     private Integer id;
     private String name;
     private LocalDate startDate;
