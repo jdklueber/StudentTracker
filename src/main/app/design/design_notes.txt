@@ -1,0 +1,20 @@
++ root
+      + Home:  List of klass or most recent class used
+      + Classes
+           + Class CRUD
+           + Class Detail
+                   + Update Roster (add/remove students from class)
+                     Do not allow a student to be removed if they have log entries!
+                   + Display student already logged status (eg: students who have been logged already today vs not)
+                   + Select a student to log
+                   + Select a student to view detail
+                   + View all logs for class, reverse chron order
+                   + Mark/unmark a student as "dropped"
+      + Students
+           + Student CRUD
+                Do not allow delete for student with logs or class roster enrollment
+           + Student detail
+                View all klass for student
+                View all logs for student
+
+

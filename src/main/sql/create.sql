@@ -1,6 +1,6 @@
 drop schema if exists StudentTracker;
 create schema StudentTracker;
-use StudentTracker;
+use StudentTrackerTest;
 
 create table Student(
     id INT PRIMARY KEY AUTO_INCREMENT,
