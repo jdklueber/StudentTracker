@@ -8,6 +8,7 @@ public interface RosterDAO {
     Roster getById(int id);
     List<Roster> getAll();
     List<Roster> getAllForKlass(int klassId);
+    List<Roster> getAllForStudent(int studentId);
     Roster save(Roster roster);
     void saveAll(List<Roster> rosters);
     Roster delete(int id);
