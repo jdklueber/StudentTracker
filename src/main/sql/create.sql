@@ -1,6 +1,6 @@
 drop schema if exists StudentTracker;
 create schema StudentTracker;
-use StudentTrackerTest;
+use StudentTracker;
 
 create table Student(
     id INT PRIMARY KEY AUTO_INCREMENT,
@@ -28,12 +28,18 @@ create table Roster(
             REFERENCES  Student(id)
 );
 
+create table Tag(
+                    id INT PRIMARY KEY AUTO_INCREMENT,
+                    tag VARCHAR(255) NOT NULL,
+                    INDEX (tag)
+);
+
 create table Log(
     id INT PRIMARY KEY AUTO_INCREMENT,
     klass_id INT NOT NULL,
     student_id INT NOT NULL,
     time_stamp DATETIME,
-    tag VARCHAR(255) NOT NULL,
+    tag_id int NOT NULL,
     body TEXT NOT NULL,
     CONSTRAINT FK_LOG_CLASS
         FOREIGN KEY (klass_id)
@@ -41,17 +47,15 @@ create table Log(
     CONSTRAINT FK_LOG_STUDENT
         FOREIGN KEY (student_id)
             REFERENCES  Student(id),
+    CONSTRAINT FK_LOG_TAG
+        FOREIGN KEY (tag_id)
+            REFERENCES  Tag(id),
     FULLTEXT (body),
-    INDEX (tag),
     INDEX (klass_id, time_stamp),
     INDEX (student_id, time_stamp)
 );
 
-create table Tag(
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    tag VARCHAR(255) NOT NULL,
-    INDEX (tag)
-);
+
 
 insert into Tag (tag) VALUES ('Bio');
 insert into Tag (tag) VALUES ('Interests');

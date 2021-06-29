@@ -3,15 +3,15 @@ delimiter //
 create procedure set_known_good_state()
 begin
     delete from Roster where id > 0;
+    delete from Log where id > 0;
     delete from Student where id > 0;
     delete from Klass where id > 0;
-    delete from Log where id > 0;
     delete from Tag where id > 0;
 
     alter table Roster auto_increment = 1;
+    alter table Log auto_increment = 1;
     alter table Student auto_increment = 1;
     alter table Klass auto_increment = 1;
-    alter table Log auto_increment = 1;
     alter table Tag auto_increment = 1;
 
     insert into Tag (tag) VALUES ('Bio');
