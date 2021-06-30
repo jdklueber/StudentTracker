@@ -11,9 +11,9 @@ import java.util.List;
 
 @Service
 public class StudentService {
-    StudentDAO students;
-    LogDAO logs;
-    RosterDAO rosters;
+    final StudentDAO students;
+    final LogDAO logs;
+    final RosterDAO rosters;
 
     @Autowired
     public StudentService(StudentDAO students, LogDAO logs, RosterDAO rosters) {

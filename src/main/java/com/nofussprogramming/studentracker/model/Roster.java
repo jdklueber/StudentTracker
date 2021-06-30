@@ -8,4 +8,5 @@ public class Roster {
     private Integer klassId;
     private Integer studentId;
     private boolean isActive;
+    Student student;
 }

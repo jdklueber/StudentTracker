@@ -124,7 +124,7 @@ public class LogDAOJDBCImpl implements LogDAO {
     }
 
     private static class LogRowMapper implements RowMapper<Log> {
-        TagDAO tags;
+        final TagDAO tags;
 
         public LogRowMapper(TagDAO tags) {
             this.tags = tags;

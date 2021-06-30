@@ -9,6 +9,7 @@ import java.util.List;
 public interface KlassDAO {
     Klass getById(int id) throws DatabaseErrorException, NotFoundException;
     List<Klass> getAll() throws DatabaseErrorException, NotFoundException;
+    List<Klass> getAllForStudent(int studentId) throws DatabaseErrorException;
     Klass save(Klass klass) throws DatabaseErrorException;
     Klass delete(int id) throws DatabaseErrorException, NotFoundException;
 }

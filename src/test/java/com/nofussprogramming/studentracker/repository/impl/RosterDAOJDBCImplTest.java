@@ -77,18 +77,21 @@ class RosterDAOJDBCImplTest {
         testA.setKlassId(testKlassA.getId());
         testA.setStudentId(alpha.getId());
         testA.setActive(true);
+        testA.setStudent(alpha);
         rosterList.add(testA);
 
         testB = new Roster();
         testB.setKlassId(testKlassA.getId());
         testB.setStudentId(bravo.getId());
         testB.setActive(false);
+        testB.setStudent(bravo);
         rosterList.add(testB);
 
         testC = new Roster();
         testC.setKlassId(testKlassB.getId());
         testC.setStudentId(charlie.getId());
         testC.setActive(true);
+        testC.setStudent(charlie);
         rosterList.add(testC);
 
         rosterDao.saveAll(rosterList);
@@ -128,15 +131,6 @@ class RosterDAOJDBCImplTest {
         assertFalse(actual.contains(testA));
         assertFalse(actual.contains(testB));
         assertTrue(actual.contains(testC));
-    }
-
-    @Test
-    void getAllForStudent() {
-        List<Roster> actual = rosterDao.getAllForStudent(bravo.getId());
-        assertEquals(1, actual.size());
-        assertFalse(actual.contains(testA));
-        assertTrue(actual.contains(testB));
-        assertFalse(actual.contains(testC));
     }
 
     @Test

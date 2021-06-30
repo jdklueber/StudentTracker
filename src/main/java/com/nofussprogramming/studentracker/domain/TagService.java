@@ -9,7 +9,7 @@ import java.util.Collection;
 
 @Service
 public class TagService {
-    TagDAO tags;
+    final TagDAO tags;
 
     @Autowired
     public TagService(TagDAO tags) {

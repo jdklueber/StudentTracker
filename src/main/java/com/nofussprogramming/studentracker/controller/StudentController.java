@@ -5,7 +5,6 @@ import com.nofussprogramming.studentracker.domain.StudentService;
 import com.nofussprogramming.studentracker.model.Log;
 import com.nofussprogramming.studentracker.model.Student;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataAccessException;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -13,8 +12,8 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/student")
 public class StudentController {
-    StudentService studentService;
-    LogService logService;
+    final StudentService studentService;
+    final LogService logService;
 
     @Autowired
     public StudentController(StudentService studentService, LogService logService) {

@@ -9,7 +9,7 @@ import java.util.List;
 
 @Service
 public class LogService {
-    LogDAO logs;
+    final LogDAO logs;
 
     @Autowired
     public LogService(LogDAO logs) {

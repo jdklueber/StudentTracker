@@ -1,9 +1,12 @@
 package com.nofussprogramming.studentracker.repository.impl;
 
+import com.nofussprogramming.studentracker.controller.exceptions.DatabaseErrorException;
 import com.nofussprogramming.studentracker.controller.exceptions.NotFoundException;
 import com.nofussprogramming.studentracker.model.Roster;
 import com.nofussprogramming.studentracker.repository.RosterDAO;
+import com.nofussprogramming.studentracker.repository.StudentDAO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -21,24 +24,26 @@ import java.util.Objects;
 @Repository
 public class RosterDAOJDBCImpl implements RosterDAO {
     private final JdbcTemplate db;
+    private final StudentDAO studentDAO;
 
     private static final String SQL_GETBYID = "select * from Roster where id = ?";
     private static final String SQL_GETBYKLASS = "select * from Roster where klass_id = ?";
-    private static final String SQL_GETBYSTUDENT = "select * from Roster where student_id = ?";
     private static final String SQL_GETALL = "select * from Roster";
     private static final String SQL_INSERT = "insert into Roster (klass_id, student_id, is_active) values(?,?,?)";
     private static final String SQL_UPDATE = "update Roster set klass_id = ?, student_id = ?, is_active = ? where id = ?";
     private static final String SQL_DELETE = "delete from Roster where id = ?";
+    private static final String SQL_DELETEALLFORKLASS = "delete from Roster where klass_id = ?";
 
     @Autowired
-    public RosterDAOJDBCImpl(JdbcTemplate db) {
+    public RosterDAOJDBCImpl(JdbcTemplate db, StudentDAO studentDAO) {
         this.db = db;
+        this.studentDAO = studentDAO;
     }
 
     @Override
     public Roster getById(int id) {
         try {
-            return db.queryForObject(SQL_GETBYID, new RosterRowMapper(), id);
+            return db.queryForObject(SQL_GETBYID, new RosterRowMapper(studentDAO), id);
         } catch (EmptyResultDataAccessException e) {
             throw new NotFoundException();
         }
@@ -46,17 +51,12 @@ public class RosterDAOJDBCImpl implements RosterDAO {
 
     @Override
     public List<Roster> getAll() {
-        return db.query(SQL_GETALL, new RosterRowMapper());
+        return db.query(SQL_GETALL, new RosterRowMapper(studentDAO));
     }
 
     @Override
     public List<Roster> getAllForKlass(int klassId) {
-        return db.query(SQL_GETBYKLASS, new RosterRowMapper(), klassId);
-    }
-
-    @Override
-    public List<Roster> getAllForStudent(int studentId) {
-        return db.query(SQL_GETBYSTUDENT, new RosterRowMapper(), studentId);
+        return db.query(SQL_GETBYKLASS, new RosterRowMapper(studentDAO), klassId);
     }
 
     @Override
@@ -102,12 +102,30 @@ public class RosterDAOJDBCImpl implements RosterDAO {
     public Roster delete(int id) {
         Roster r = getById(id);
         if (r != null) {
-            db.update(SQL_DELETE, id);
+            try {
+                db.update(SQL_DELETE, id);
+            } catch (DataAccessException e) {
+                throw new DatabaseErrorException();
+            }
         }
         return r;
     }
 
+    @Override
+    public void deleteAllForKlass(int klassId) throws DatabaseErrorException {
+        try {
+            db.update(SQL_DELETEALLFORKLASS, klassId);
+        } catch (DataAccessException e) {
+            throw new DatabaseErrorException();
+        }
+    }
+
     private static class RosterRowMapper implements RowMapper<Roster> {
+        private final StudentDAO studentDAO;
+
+        private RosterRowMapper(StudentDAO studentDAO) {
+            this.studentDAO = studentDAO;
+        }
 
         @Override
         public Roster mapRow(ResultSet row, int i) throws SQLException {
@@ -117,6 +135,7 @@ public class RosterDAOJDBCImpl implements RosterDAO {
             result.setKlassId(row.getInt("klass_id"));
             result.setStudentId(row.getInt("student_id"));
             result.setActive(row.getBoolean("is_active"));
+            result.setStudent(studentDAO.getById(result.getStudentId()));
 
             return result;
         }

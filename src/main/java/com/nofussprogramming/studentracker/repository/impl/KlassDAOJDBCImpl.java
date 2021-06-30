@@ -3,7 +3,9 @@ package com.nofussprogramming.studentracker.repository.impl;
 import com.nofussprogramming.studentracker.controller.exceptions.DatabaseErrorException;
 import com.nofussprogramming.studentracker.controller.exceptions.NotFoundException;
 import com.nofussprogramming.studentracker.model.Klass;
+import com.nofussprogramming.studentracker.model.Roster;
 import com.nofussprogramming.studentracker.repository.KlassDAO;
+import com.nofussprogramming.studentracker.repository.RosterDAO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -23,23 +25,26 @@ import java.util.Objects;
 @Repository
 public class KlassDAOJDBCImpl implements KlassDAO {
     private final JdbcTemplate db;
+    private final RosterDAO rosterDAO;
 
     private static final String SQL_GETBYID = "select * from Klass where id = ?";
     private static final String SQL_GETALL = "select * from Klass";
+    private static final String SQL_GETALLFORSTUDENT = "select * from Klass where id in (select * from Roster where student_id = ?)";
     private static final String SQL_INSERT = "insert into Klass (name, start_date, end_date) values(?,?,?)";
     private static final String SQL_UPDATE = "update Klass set name = ?, start_date = ?, end_date = ? where id = ?";
     private static final String SQL_DELETE = "delete from Klass where id = ?";
 
     @Autowired
-    public KlassDAOJDBCImpl(JdbcTemplate db) {
+    public KlassDAOJDBCImpl(JdbcTemplate db, RosterDAO rosterDAO) {
         this.db = db;
+        this.rosterDAO = rosterDAO;
     }
 
 
     @Override
     public Klass getById(int id) {
         try {
-            return db.queryForObject(SQL_GETBYID, new KlassRowMapper(), id);
+            return db.queryForObject(SQL_GETBYID, new KlassRowMapper(rosterDAO), id);
         } catch (EmptyResultDataAccessException e) {
             throw new NotFoundException();
         }
@@ -47,7 +52,12 @@ public class KlassDAOJDBCImpl implements KlassDAO {
 
     @Override
     public List<Klass> getAll() {
-        return db.query(SQL_GETALL, new KlassRowMapper());
+        return db.query(SQL_GETALL, new KlassRowMapper(rosterDAO));
+    }
+
+    @Override
+    public List<Klass> getAllForStudent(int studentId) throws DatabaseErrorException {
+        return db.query(SQL_GETALLFORSTUDENT, new KlassRowMapper(rosterDAO), studentId);
     }
 
     @Override
@@ -76,6 +86,11 @@ public class KlassDAOJDBCImpl implements KlassDAO {
             }
 
             klass.setId(Objects.requireNonNull(keyHolder.getKey()).intValue());
+            for (Roster r : klass.getRoster()) {
+                r.setKlassId(klass.getId());
+            }
+            rosterDAO.saveAll(klass.getRoster());
+
             return klass;
         } catch (DataAccessException e) {
             throw new DatabaseErrorException();
@@ -84,6 +99,12 @@ public class KlassDAOJDBCImpl implements KlassDAO {
     private Klass update(Klass klass) {
         try {
             db.update(SQL_UPDATE, klass.getName(), klass.getStartDate(), klass.getEndDate(), klass.getId());
+            rosterDAO.deleteAllForKlass(klass.getId());
+            for (Roster r : klass.getRoster()) {
+                r.setId(null);
+                r.setKlassId(klass.getId());
+            }
+            rosterDAO.saveAll(klass.getRoster());
             return klass;
 
         } catch (DataAccessException e) {
@@ -96,6 +117,7 @@ public class KlassDAOJDBCImpl implements KlassDAO {
         try {
             Klass klass = getById(id);
             if(klass != null) {
+                rosterDAO.deleteAllForKlass(id);
                 db.update(SQL_DELETE, id);
                 return klass;
             }
@@ -106,6 +128,11 @@ public class KlassDAOJDBCImpl implements KlassDAO {
     }
 
     private static class KlassRowMapper implements RowMapper<Klass> {
+        private final RosterDAO rosterDAO;
+
+        public KlassRowMapper(RosterDAO rosterDAO) {
+            this.rosterDAO = rosterDAO;
+        }
 
         @Override
         public Klass mapRow(ResultSet row, int i) throws SQLException {
@@ -115,6 +142,8 @@ public class KlassDAOJDBCImpl implements KlassDAO {
             result.setName(row.getString("name"));
             result.setStartDate(row.getDate("start_date").toLocalDate());
             result.setEndDate(row.getDate("end_date").toLocalDate());
+
+            result.setRoster(rosterDAO.getAllForKlass(result.getId()));
 
             return result;
         }

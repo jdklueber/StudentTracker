@@ -12,7 +12,7 @@ import java.util.Collection;
 @RestController
 @RequestMapping("/api/tags")
 public class TagController {
-    TagService tagService;
+    final TagService tagService;
 
     @Autowired
     public TagController(TagService tagService) {
