@@ -1,5 +1,6 @@
 package com.nofussprogramming.studentracker.repository.impl;
 
+import com.nofussprogramming.studentracker.controller.exceptions.NotFoundException;
 import com.nofussprogramming.studentracker.model.Roster;
 import com.nofussprogramming.studentracker.repository.RosterDAO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,7 +40,7 @@ public class RosterDAOJDBCImpl implements RosterDAO {
         try {
             return db.queryForObject(SQL_GETBYID, new RosterRowMapper(), id);
         } catch (EmptyResultDataAccessException e) {
-            return null;
+            throw new NotFoundException();
         }
     }
 

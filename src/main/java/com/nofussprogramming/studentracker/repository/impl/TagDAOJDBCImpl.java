@@ -1,8 +1,11 @@
 package com.nofussprogramming.studentracker.repository.impl;
 
+import com.nofussprogramming.studentracker.controller.exceptions.DatabaseErrorException;
+import com.nofussprogramming.studentracker.controller.exceptions.NotFoundException;
 import com.nofussprogramming.studentracker.model.Tag;
 import com.nofussprogramming.studentracker.repository.TagDAO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -37,7 +40,7 @@ public class TagDAOJDBCImpl implements TagDAO {
         try {
             return db.queryForObject(SQL_GETBYID, new TagRowMapper(), id);
         } catch (EmptyResultDataAccessException e) {
-            return null;
+            throw new NotFoundException();
         }
     }
 
@@ -56,34 +59,46 @@ public class TagDAOJDBCImpl implements TagDAO {
     }
 
     private Tag add(Tag tag) {
-        KeyHolder keyHolder = new GeneratedKeyHolder();
-        int rowsAffected = db.update(connection -> {
-            PreparedStatement ps = connection.prepareStatement(SQL_INSERT, Statement.RETURN_GENERATED_KEYS);
-            ps.setString(1, tag.getTag());
-            return ps;
-        }, keyHolder);
+        try {
+            KeyHolder keyHolder = new GeneratedKeyHolder();
+            int rowsAffected = db.update(connection -> {
+                PreparedStatement ps = connection.prepareStatement(SQL_INSERT, Statement.RETURN_GENERATED_KEYS);
+                ps.setString(1, tag.getTag());
+                return ps;
+            }, keyHolder);
 
-        if (rowsAffected <= 0) {
-            return null;
+            if (rowsAffected <= 0) {
+                return null;
+            }
+
+            tag.setId(Objects.requireNonNull(keyHolder.getKey()).intValue());
+            return tag;
+        } catch (DataAccessException e) {
+            throw new DatabaseErrorException();
         }
-
-        tag.setId(Objects.requireNonNull(keyHolder.getKey()).intValue());
-        return tag;
     }
 
     private Tag update(Tag tag) {
-        db.update(SQL_UPDATE, tag.getTag(), tag.getId());
-        return tag;
+        try {
+            db.update(SQL_UPDATE, tag.getTag(), tag.getId());
+            return tag;
+        } catch (DataAccessException e) {
+            throw new DatabaseErrorException();
+        }
     }
 
     @Override
     public Tag delete(int id) {
         Tag target = getById(id);
         if (target != null) {
-            db.update(SQL_DELETE, id);
-            return target;
+            try {
+                db.update(SQL_DELETE, id);
+                return target;
+            } catch (DataAccessException e) {
+                throw new DatabaseErrorException();
+            }
         } else {
-            return null;
+            throw new NotFoundException();
         }
     }
 

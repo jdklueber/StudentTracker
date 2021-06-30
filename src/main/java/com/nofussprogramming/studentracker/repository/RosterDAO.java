@@ -1,15 +1,17 @@
 package com.nofussprogramming.studentracker.repository;
 
+import com.nofussprogramming.studentracker.controller.exceptions.DatabaseErrorException;
+import com.nofussprogramming.studentracker.controller.exceptions.NotFoundException;
 import com.nofussprogramming.studentracker.model.Roster;
 
 import java.util.List;
 
 public interface RosterDAO {
-    Roster getById(int id);
-    List<Roster> getAll();
-    List<Roster> getAllForKlass(int klassId);
-    List<Roster> getAllForStudent(int studentId);
-    Roster save(Roster roster);
-    void saveAll(List<Roster> rosters);
-    Roster delete(int id);
+    Roster getById(int id) throws DatabaseErrorException, NotFoundException;
+    List<Roster> getAll() throws DatabaseErrorException, NotFoundException;
+    List<Roster> getAllForKlass(int klassId) throws DatabaseErrorException, NotFoundException;
+    List<Roster> getAllForStudent(int studentId) throws DatabaseErrorException, NotFoundException;
+    Roster save(Roster roster) throws DatabaseErrorException;
+    void saveAll(List<Roster> rosters) throws DatabaseErrorException;
+    Roster delete(int id) throws DatabaseErrorException, NotFoundException;
 }

@@ -1,5 +1,6 @@
 package com.nofussprogramming.studentracker.repository.impl;
 
+import com.nofussprogramming.studentracker.controller.exceptions.NotFoundException;
 import com.nofussprogramming.studentracker.model.Klass;
 import com.nofussprogramming.studentracker.model.Roster;
 import com.nofussprogramming.studentracker.model.Student;
@@ -150,6 +151,6 @@ class RosterDAOJDBCImplTest {
     void delete() {
         Roster check = rosterDao.delete(testA.getId());
         assertEquals(testA, check);
-        assertNull(rosterDao.getById(check.getId()));
+        assertThrows(NotFoundException.class, () -> rosterDao.getById(check.getId()));
     }
 }

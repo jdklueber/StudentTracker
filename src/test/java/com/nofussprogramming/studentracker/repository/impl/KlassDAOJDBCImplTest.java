@@ -1,5 +1,6 @@
 package com.nofussprogramming.studentracker.repository.impl;
 
+import com.nofussprogramming.studentracker.controller.exceptions.NotFoundException;
 import com.nofussprogramming.studentracker.model.Klass;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -60,7 +61,8 @@ class KlassDAOJDBCImplTest {
     void delete() {
         Klass actual = dao.delete(testKlass.getId());
         assertEquals(testKlass, actual);
-        assertNull(dao.getById(testKlass.getId()));
+        assertThrows(NotFoundException.class, () -> dao.getById(testKlass.getId()));
         assertEquals(0, dao.getAll().size());
+
     }
 }

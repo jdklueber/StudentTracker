@@ -1,8 +1,11 @@
 package com.nofussprogramming.studentracker.repository.impl;
 
+import com.nofussprogramming.studentracker.controller.exceptions.DatabaseErrorException;
+import com.nofussprogramming.studentracker.controller.exceptions.NotFoundException;
 import com.nofussprogramming.studentracker.model.Klass;
 import com.nofussprogramming.studentracker.repository.KlassDAO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -38,7 +41,7 @@ public class KlassDAOJDBCImpl implements KlassDAO {
         try {
             return db.queryForObject(SQL_GETBYID, new KlassRowMapper(), id);
         } catch (EmptyResultDataAccessException e) {
-            return null;
+            throw new NotFoundException();
         }
     }
 
@@ -57,36 +60,49 @@ public class KlassDAOJDBCImpl implements KlassDAO {
     }
 
     private Klass add(Klass klass){
-        KeyHolder keyHolder = new GeneratedKeyHolder();
-        int rowsAffected = db.update(connection -> {
-            PreparedStatement ps = connection.prepareStatement(SQL_INSERT, Statement.RETURN_GENERATED_KEYS);
-            ps.setString(1, klass.getName());
-            ps.setObject(2, klass.getStartDate());
-            ps.setObject(3, klass.getEndDate());
+        try {
+            KeyHolder keyHolder = new GeneratedKeyHolder();
+            int rowsAffected = db.update(connection -> {
+                PreparedStatement ps = connection.prepareStatement(SQL_INSERT, Statement.RETURN_GENERATED_KEYS);
+                ps.setString(1, klass.getName());
+                ps.setObject(2, klass.getStartDate());
+                ps.setObject(3, klass.getEndDate());
 
-            return ps;
-        }, keyHolder);
+                return ps;
+            }, keyHolder);
 
-        if (rowsAffected <= 0) {
-            return null;
+            if (rowsAffected <= 0) {
+                return null;
+            }
+
+            klass.setId(Objects.requireNonNull(keyHolder.getKey()).intValue());
+            return klass;
+        } catch (DataAccessException e) {
+            throw new DatabaseErrorException();
         }
-
-        klass.setId(Objects.requireNonNull(keyHolder.getKey()).intValue());
-        return klass;
     }
     private Klass update(Klass klass) {
-        db.update(SQL_UPDATE, klass.getName(), klass.getStartDate(), klass.getEndDate(), klass.getId());
-        return klass;
+        try {
+            db.update(SQL_UPDATE, klass.getName(), klass.getStartDate(), klass.getEndDate(), klass.getId());
+            return klass;
+
+        } catch (DataAccessException e) {
+            throw new DatabaseErrorException();
+        }
     }
 
     @Override
     public Klass delete(int id) {
-        Klass klass = getById(id);
-        if(klass != null) {
-            db.update(SQL_DELETE, id);
+        try {
+            Klass klass = getById(id);
+            if(klass != null) {
+                db.update(SQL_DELETE, id);
+                return klass;
+            }
+        } catch (DataAccessException e) {
+            throw new DatabaseErrorException();
         }
-
-        return klass;
+        return null;
     }
 
     private static class KlassRowMapper implements RowMapper<Klass> {

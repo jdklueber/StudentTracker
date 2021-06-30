@@ -1,5 +1,6 @@
 package com.nofussprogramming.studentracker.repository.impl;
 
+import com.nofussprogramming.studentracker.controller.exceptions.NotFoundException;
 import com.nofussprogramming.studentracker.model.Klass;
 import com.nofussprogramming.studentracker.model.Log;
 import com.nofussprogramming.studentracker.model.Student;

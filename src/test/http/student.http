@@ -1,0 +1,34 @@
+GET http://{{host}}/api/student/1
+Accept: application/json
+
+###
+
+GET http://{{host}}/api/student
+Accept: application/json
+
+###
+POST http://{{host}}/api/student
+Content-Type: application/json
+
+{
+  "firstName": "Jason",
+  "lastName": "Klueber"
+}
+
+###
+
+PUT http://{{host}}/api/student
+Content-Type: application/json
+
+{
+  "id": 1,
+  "firstName": "Jason",
+  "lastName": "Klueber"
+}
+
+###
+
+DELETE http://{{host}}/api/student/2
+Content-Type: application/json
+
+###

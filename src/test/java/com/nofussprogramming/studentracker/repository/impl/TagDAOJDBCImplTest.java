@@ -1,5 +1,6 @@
 package com.nofussprogramming.studentracker.repository.impl;
 
+import com.nofussprogramming.studentracker.controller.exceptions.NotFoundException;
 import com.nofussprogramming.studentracker.model.Tag;
 import com.nofussprogramming.studentracker.repository.TagDAO;
 import org.junit.jupiter.api.BeforeEach;
@@ -73,7 +74,7 @@ class TagDAOJDBCImplTest {
         Tag actual = tagDao.delete(1);
         assertEquals(expected, actual);
         assertEquals(initalSize-1, tagDao.getAll().size());
-        assertNull(tagDao.getById(1));
+        assertThrows(NotFoundException.class, () -> tagDao.getById(1));
 
     }
 }

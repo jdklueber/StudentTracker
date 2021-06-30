@@ -1,8 +1,11 @@
 package com.nofussprogramming.studentracker.repository.impl;
 
+import com.nofussprogramming.studentracker.controller.exceptions.DatabaseErrorException;
+import com.nofussprogramming.studentracker.controller.exceptions.NotFoundException;
 import com.nofussprogramming.studentracker.model.Student;
 import com.nofussprogramming.studentracker.repository.StudentDAO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -37,7 +40,7 @@ public class StudentDAOJDBCImpl implements StudentDAO {
         try {
             return db.queryForObject(SQL_GETBYID, new StudentRowMapper(), id);
         } catch (EmptyResultDataAccessException e) {
-            return null;
+            throw new NotFoundException();
         }
     }
 
@@ -56,24 +59,32 @@ public class StudentDAOJDBCImpl implements StudentDAO {
     }
 
     private Student add(Student student){
-        KeyHolder keyHolder = new GeneratedKeyHolder();
-        int rowsAffected = db.update(connection -> {
-            PreparedStatement ps = connection.prepareStatement(SQL_INSERT, Statement.RETURN_GENERATED_KEYS);
-            ps.setString(1, student.getFirstName());
-            ps.setString(2, student.getLastName());
-            return ps;
-        }, keyHolder);
+        try {
+            KeyHolder keyHolder = new GeneratedKeyHolder();
+            int rowsAffected = db.update(connection -> {
+                PreparedStatement ps = connection.prepareStatement(SQL_INSERT, Statement.RETURN_GENERATED_KEYS);
+                ps.setString(1, student.getFirstName());
+                ps.setString(2, student.getLastName());
+                return ps;
+            }, keyHolder);
 
-        if (rowsAffected <= 0) {
-            return null;
+            if (rowsAffected <= 0) {
+                return null;
+            }
+
+            student.setId(Objects.requireNonNull(keyHolder.getKey()).intValue());
+            return student;
+        } catch (DataAccessException e) {
+            throw new DatabaseErrorException();
         }
-
-        student.setId(Objects.requireNonNull(keyHolder.getKey()).intValue());
-        return student;
     }
     private Student update(Student student) {
-        db.update(SQL_UPDATE, student.getFirstName(), student.getLastName(), student.getId());
-        return student;
+        try {
+            db.update(SQL_UPDATE, student.getFirstName(), student.getLastName(), student.getId());
+            return student;
+        } catch (DataAccessException e) {
+            throw new DatabaseErrorException();
+        }
     }
 
 
@@ -81,7 +92,13 @@ public class StudentDAOJDBCImpl implements StudentDAO {
     public Student delete(int id) {
         Student student = getById(id);
         if (student != null) {
-            db.update(SQL_DELETE, id);
+            try {
+                db.update(SQL_DELETE, id);
+            } catch (DataAccessException e) {
+                throw new DatabaseErrorException();
+            }
+        } else {
+            throw new NotFoundException();
         }
 
         return student;

@@ -1,9 +1,12 @@
 package com.nofussprogramming.studentracker.repository.impl;
 
+import com.nofussprogramming.studentracker.controller.exceptions.DatabaseErrorException;
+import com.nofussprogramming.studentracker.controller.exceptions.NotFoundException;
 import com.nofussprogramming.studentracker.model.Log;
 import com.nofussprogramming.studentracker.repository.LogDAO;
 import com.nofussprogramming.studentracker.repository.TagDAO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -42,7 +45,7 @@ public class LogDAOJDBCImpl implements LogDAO {
         try {
             return db.queryForObject(SQL_GETBYID, new LogRowMapper(tags), id);
         } catch (EmptyResultDataAccessException e) {
-            return null;
+            throw new NotFoundException();
         }
     }
 
@@ -71,38 +74,53 @@ public class LogDAOJDBCImpl implements LogDAO {
     }
 
     private Log add(Log log) {
-        KeyHolder keyHolder = new GeneratedKeyHolder();
-        int rowsAffected = db.update(connection -> {
-            PreparedStatement ps = connection.prepareStatement(SQL_INSERT, Statement.RETURN_GENERATED_KEYS);
-            ps.setInt(1, log.getKlassId());
-            ps.setInt(2, log.getStudentId());
-            ps.setObject(3, log.getTimestamp());
-            ps.setInt(4, log.getTag().getId());
-            ps.setString(5, log.getBody());
+        try {
+            KeyHolder keyHolder = new GeneratedKeyHolder();
+            int rowsAffected = db.update(connection -> {
+                PreparedStatement ps = connection.prepareStatement(SQL_INSERT, Statement.RETURN_GENERATED_KEYS);
+                ps.setInt(1, log.getKlassId());
+                ps.setInt(2, log.getStudentId());
+                ps.setObject(3, log.getTimestamp());
+                ps.setInt(4, log.getTag().getId());
+                ps.setString(5, log.getBody());
 
-            return ps;
-        }, keyHolder);
+                return ps;
+            }, keyHolder);
 
-        if (rowsAffected <= 0) {
-            return null;
+            if (rowsAffected <= 0) {
+                return null;
+            }
+
+            log.setId(Objects.requireNonNull(keyHolder.getKey()).intValue());
+            return log;
+
+        } catch (DataAccessException e) {
+            throw new DatabaseErrorException();
         }
-
-        log.setId(Objects.requireNonNull(keyHolder.getKey()).intValue());
-        return log;
     }
 
     private Log update(Log log) {
-        db.update(SQL_UPDATE, log.getKlassId(), log.getStudentId(), log.getTimestamp(), log.getTag().getId(), log.getBody(), log.getId());
-        return log;
+        try {
+            db.update(SQL_UPDATE, log.getKlassId(), log.getStudentId(), log.getTimestamp(), log.getTag().getId(), log.getBody(), log.getId());
+            return log;
+        } catch (DataAccessException e) {
+            throw new DatabaseErrorException();
+        }
     }
 
     @Override
     public Log delete(int id) {
-        Log l = getById(id);
-        if (l != null) {
-            db.update(SQL_DELETE, l.getId());
+        try {
+            Log l = getById(id);
+            if (l != null) {
+                db.update(SQL_DELETE, l.getId());
+            } else {
+                throw new NotFoundException();
+            }
+            return l;
+        } catch (DataAccessException e) {
+            throw new DatabaseErrorException();
         }
-        return l;
     }
 
     private static class LogRowMapper implements RowMapper<Log> {
