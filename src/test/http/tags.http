@@ -1,0 +1,5 @@
+### Get all tags
+GET http://{{host}}/{{base_path}}/tags
+Accept: application/json
+
+###
