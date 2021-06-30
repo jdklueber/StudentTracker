@@ -1,0 +1,46 @@
+### Get All
+GET http://{{host}}/api/klass
+Content-Type: application/json
+
+### Get One
+GET http://{{host}}/api/klass/2
+Content-Type: application/json
+
+### Create
+POST http://{{host}}/api/klass
+Content-Type: application/json
+
+{
+  "name": "The bestest class",
+  "startDate": "2021-10-01",
+  "endDate": "2021-11-01",
+  "roster": [
+    {
+      "active": true,
+      "studentId": 3,
+      "klassId": 1
+    }
+  ]
+}
+
+### Update
+PUT http://{{host}}/api/klass
+Content-Type: application/json
+
+{
+  "id": 1,
+  "name": "The bestest class",
+  "startDate": "2021-10-01",
+  "endDate": "2021-11-01",
+  "roster": [
+    {
+      "active": true,
+      "studentId": 3,
+      "klassId": 1
+    }
+  ]
+}
+
+### Delete
+DELETE http://{{host}}/api/klass/2
+Content-Type: application/json

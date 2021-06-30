@@ -24,4 +24,11 @@ public class LogService {
         return logs.getAllForKlass(id);
     }
 
+    public Log save(Log log) {
+        return logs.save(log);
+    }
+
+    public Log delete(int id) {
+        return logs.delete(id);
+    }
 }

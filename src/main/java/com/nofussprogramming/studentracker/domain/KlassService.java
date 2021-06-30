@@ -23,4 +23,12 @@ public class KlassService {
     public Klass getById(Integer id) {
         return klasses.getById(id);
     }
+
+    public Klass save(Klass klass) {
+        return klasses.save(klass);
+    }
+
+    public Klass delete(int id) {
+        return klasses.delete(id);
+    }
 }

@@ -1,0 +1,21 @@
+### Get All For Klass
+GET http://{{host}}/api/klass/1/logs
+Content-Type: application/json
+
+### Get All For Student
+GET http://{{host}}/api/student/3/logs
+Content-Type: application/json
+
+
+### Create
+POST http://{{host}}/api/log
+Content-Type: application/json
+
+{
+  "klassId": 1,
+  "studentId": 3,
+  "tag": {
+    "id": 3
+  },
+  "body": "This is the song that wouldn't end\nIt goes on and on my friend"
+}

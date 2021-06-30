@@ -18,6 +18,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
@@ -66,6 +67,7 @@ public class LogDAOJDBCImpl implements LogDAO {
 
     @Override
     public Log save(Log log) {
+        log.setTimestamp(LocalDateTime.now());  //Timestamp is always last updated time
         if (log.getId() != null) {
             return update(log);
         } else {
