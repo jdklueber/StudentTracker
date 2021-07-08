@@ -1,24 +1,43 @@
-import logo from './logo.svg';
 import './App.css';
-
+import KlassList from "./components/views/KlassList";
+import NavigationBar from "./components/layout/NavigationBar";
+import {BrowserRouter, Route} from "react-router-dom";
+import StudentList from "./components/views/StudentList";
+import SideBar from "./components/layout/SideBar";
+import {Grid} from "@material-ui/core";
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <BrowserRouter>
+        <NavigationBar/>
+        <Grid container>
+            <Grid item xs={2}>
+                <SideBar/>
+            </Grid>
+            <Grid item xs={10}>
+                <Route
+                    exact
+                    path="/"
+                    render={()=>(
+                        <KlassList/>
+                    )}
+                />
+                <Route
+                    exact
+                    path="/classes"
+                    render={()=>(
+                        <KlassList/>
+                    )}
+                />
+                <Route
+                    exact
+                    path="/students"
+                    render={()=>(
+                        <StudentList/>
+                    )}
+                />
+            </Grid>
+        </Grid>
+    </BrowserRouter>
   );
 }
 
