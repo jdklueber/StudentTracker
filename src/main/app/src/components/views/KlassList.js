@@ -1,39 +1,36 @@
 import React, {useEffect, useState} from "react";
 import {
-    Button,
-    Paper,
-    Table,
-    TableBody,
-    TableCell,
-    TableContainer,
-    TableHead,
-    TableRow,
-    TableSortLabel
+    Grid, makeStyles, Typography,
 } from "@material-ui/core";
-import Klass from "./Klass";
+import KlassCard from "../displays/KlassCard";
 import {DateTime} from "luxon";
+import NewItemCard from "../ui/NewItemCard";
+import Header from "../ui/Header";
+import {useHistory} from "react-router-dom";
 
-const comparator = (prop, desc=true) => (a, b) => {
-    const SMALLER = -1;
-    const BIGGER = 1;
-    const EQUAL = 0;
-
-    const order = desc ? -1 : 1;
-
-    if (a[prop] < b[prop]) {
-        return SMALLER * order;
+const dateSortAsc = (klass1, klass2) => {
+    const d1 = DateTime.fromISO(klass1.startDate);
+    const d2 = DateTime.fromISO(klass2.startDate);
+    if (d1 < d2) {
+        return -1;
+    } else if (d2 < d1) {
+        return 1;
+    } else {
+        return 0;
     }
-
-    if (a[prop] > b[prop]) {
-        return BIGGER * order;
-    }
-
-    return EQUAL;
 }
+
+const useStyles = makeStyles(theme => ({
+    margined: {
+        marginTop: theme.spacing(2),
+        marginBottom: theme.spacing(2)
+    }
+}));
 
 function KlassList(props) {
     const [klassList, setKlassList] = useState([]);
-    const [selectedKlass, setSelectedKlass] = useState();
+    const classes = useStyles();
+    const history = useHistory();
 
     function loadData() {
         fetch("http://localhost:8080/api/klass")
@@ -45,80 +42,76 @@ function KlassList(props) {
         loadData();
     },[]);
 
-    const [columns, setColumns] = useState([
-        {name: 'name', active: false },
-        {name: 'startDate', active: false },
-        {name: 'endDate', active: false },
-    ]);
+    const isInFlight = (klass) => {
+        const now = DateTime.now();
+        const startDate = DateTime.fromISO(klass.startDate);
+        const endDate = DateTime.fromISO(klass.endDate);
 
-    const onSortClick = index => () => {
-        setColumns(
-            columns.map((column, i) => ({
-                ...column,
-                active: index === i,
-                order:
-                    (index === i && (column.order === 'desc' ? 'asc' : 'desc')) || undefined
-            }))
-        );
-
-        setKlassList(
-            klassList.slice().sort(
-                comparator(columns[index].name,
-                    columns[index].order === 'desc')
-            )
-        );
-    };
-
-    const updateKlass = function(updatedKlass) {
-        setSelectedKlass(updatedKlass);
+        return now >= startDate && now <= endDate;
     }
 
-    const saveKlass = function() {
-        const HTTP_VERB = selectedKlass.id === null ? 'POST' : 'PUT';
+    const isOld = (klass) => {
+        const now = DateTime.now();
+        const endDate = DateTime.fromISO(klass.endDate);
 
-        fetch("http://localhost:8080/api/klass", {
-            method: HTTP_VERB,
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(selectedKlass)
-        })
-            .then(response => loadData());
+        return now > endDate;
 
     }
+
+    const isUpcoming = (klass) => {
+        const now = DateTime.now();
+        const startDate = DateTime.fromISO(klass.startDate);
+
+        return now < startDate;
+
+    }
+
+    const inFlightklasses = klassList.sort(dateSortAsc).filter(e => {return isInFlight(e)}).map(klass => {
+       return (
+            <Grid item xs={12} sm={6} md={3} key={klass.id}>
+                <KlassCard klass={klass}/>
+            </Grid>
+       );
+    });
+
+    const upcomingklasses = klassList.sort(dateSortAsc).filter(e => {return isUpcoming(e)}).map(klass => {
+        return (
+            <Grid item xs={12} sm={6} md={3} key={klass.id} >
+                <KlassCard klass={klass}/>
+            </Grid>
+        );
+    });
+
+    const oldklasses = klassList.sort(dateSortAsc).filter(e => {return isOld(e)}).map(klass => {
+        return (
+            <Grid item xs={12} sm={6} md={3} key={klass.id}>
+                <KlassCard klass={klass}/>
+            </Grid>
+        );
+    });
 
     return (
         <div>
-            <Button onClick={() => {setSelectedKlass({newRecord: true, name: "", startDate: DateTime.now().toISODate(), endDate: DateTime.now().plus({months: 1}).toISODate()})}}>Add</Button>
-            <TableContainer component={Paper}>
-                <Table>
-                    <TableHead>
-                        <TableRow>
-                            {columns.map((column, index) => (
-                                    <TableCell key={column.name}>
-                                        <TableSortLabel active={column.active} direction={column.order} onClick={onSortClick(index)}>
-                                            {column.name}
-                                        </TableSortLabel>
-                                    </TableCell>
-                                )
-                            )}
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {klassList.map( (row) =>  (
-                                <TableRow key={row.id} onClick={()=>{setSelectedKlass(row)}}>
-                                    <TableCell>{row.name}</TableCell>
-                                    <TableCell>{row.startDate}</TableCell>
-                                    <TableCell>{row.endDate}</TableCell>
-                                </TableRow>
-                            )
-                        )}
-                    </TableBody>
-                </Table>
-            </TableContainer>
-            { selectedKlass ? <Klass klass={selectedKlass} saveHandler={saveKlass} changeHandler={updateKlass}/> : "" }
+            <Header title="Classes"/>
+            <Grid container spacing={3}>
+                <Grid item xs={12} sm={6} md={3}>
+                    <NewItemCard text="New Class" onClick={()=>{history.push('/classes/new')}}/>
+                </Grid>
+            </Grid>
+            <Typography variant="h5" color="primary" className={classes.margined}>In Flight</Typography>
+            <Grid container spacing={3}>
+                { inFlightklasses }
+            </Grid>
+            <Typography variant="h5" color="primary" className={classes.margined}>Upcoming</Typography>
+            <Grid container spacing={3}>
+                { upcomingklasses.length ? upcomingklasses : <Grid item xs={12} sm={6} md={3}>None Found</Grid> }
+            </Grid>
+            <Typography variant="h5" color="primary" className={classes.margined}>Historical</Typography>
+            <Grid container spacing={3}>
+                { oldklasses.length ? oldklasses : <Grid item xs={12} sm={6} md={3}>None Found</Grid> }
+            </Grid>
         </div>
-    )
+    );
 }
 
 export default KlassList;

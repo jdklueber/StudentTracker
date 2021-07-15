@@ -14,6 +14,9 @@ function SideBar(props) {
     return (
         <div className={classes.root}>
             <List>
+                <ListItem button component={Link} to='/'>
+                    <ListItemText primary='Dashboard' />
+                </ListItem>
                 <ListItem button component={Link} to='/classes'>
                     <ListItemText primary='Classes' />
                 </ListItem>

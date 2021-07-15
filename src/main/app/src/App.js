@@ -4,8 +4,19 @@ import NavigationBar from "./components/layout/NavigationBar";
 import {BrowserRouter, Route} from "react-router-dom";
 import StudentList from "./components/views/StudentList";
 import SideBar from "./components/layout/SideBar";
-import {Grid} from "@material-ui/core";
+import {Grid, makeStyles} from "@material-ui/core";
+import NewKlass from "./components/views/NewKlass";
+import SingleKlass from "./components/views/SingleKlass";
+import Dashboard from "./components/views/dashboard/Dashboard";
+
+const useStyles = makeStyles(theme => ({
+    grid: {
+        padding: theme.spacing(2)
+    }
+}));
+
 function App() {
+    const classes = useStyles();
   return (
     <BrowserRouter>
         <NavigationBar/>
@@ -13,12 +24,12 @@ function App() {
             <Grid item xs={2}>
                 <SideBar/>
             </Grid>
-            <Grid item xs={10}>
+            <Grid item xs={10} className={classes.grid}>
                 <Route
                     exact
                     path="/"
                     render={()=>(
-                        <KlassList/>
+                        <Dashboard/>
                     )}
                 />
                 <Route
@@ -35,6 +46,19 @@ function App() {
                         <StudentList/>
                     )}
                 />
+                <Route
+                    exact
+                    path="/classes/new"
+                    render={(data)=>(
+                        <NewKlass/>
+                    )}
+                />
+                <Route
+                    exact
+                    path="/class/:id"
+                    render={(data) => (
+                        <SingleKlass id={data.match.params.id}/>
+                    )}/>
             </Grid>
         </Grid>
     </BrowserRouter>

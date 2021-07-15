@@ -1,15 +1,5 @@
-import React, {useState} from "react";
-import {AppBar,
-
-
-
-
-
-
-
-    makeStyles, Tab, Tabs, Toolbar, Typography} from "@material-ui/core";
-import {Link} from "react-router-dom";
-
+import React from "react";
+import {AppBar, makeStyles,Toolbar, Typography} from "@material-ui/core";
 
 const useStyles = makeStyles(theme => (
     {
@@ -29,11 +19,6 @@ const useStyles = makeStyles(theme => (
 
 function NavigationBar(props) {
     const classes = useStyles();
-    const [tab, setTab] = useState(0);
-
-    const onChange = (e, value) => {
-        setTab(value);
-    }
 
     return (
         <div className={classes.root}>
